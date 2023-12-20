@@ -1,0 +1,43 @@
+#include <IRremote.h>
+
+// Definisci il pin del ricevitore IR
+#define IR_RECEIVER_PIN 2
+// Definire il perno di controllo del motore
+#define MOTOR_PIN 3
+// Definire il semaforo
+#define GREEN_LIGHT_PIN 4
+
+// Crea un oggetto IRremote
+IRrecv irrecv(IR_RECEIVER_PIN);
+decode_results results;
+
+void setup() {
+  // Inizializzare la comunicazione seriale
+  Serial.begin(9600);
+  // Initialize IR receiver
+  irrecv.enableIRIn();
+  // Inizializzare il ricevitore IR
+  pinMode(MOTOR_PIN, OUTPUT);
+  // Inizializzare il semaforo
+  pinMode(GREEN_LIGHT_PIN, OUTPUT);
+}
+
+void loop() {
+  // Controllare se il segnale IR è ricevuto
+  if (irrecv.decode(&results)) {
+    Serial.println(results.value, HEX);
+
+    if (results.value == 0x12345678) {
+      digitalWrite(MOTOR_PIN, HIGH);
+      delay(2000);
+      digitalWrite(MOTOR_PIN, LOW);
+
+      // Accendere il semaforo verde
+      digitalWrite(GREEN_LIGHT_PIN, HIGH);
+      delay(2000);
+      digitalWrite(GREEN_LIGHT_PIN, LOW);
+    }
+
+    irrecv.resume();
+  }
+}

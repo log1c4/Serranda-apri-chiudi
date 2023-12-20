@@ -1,0 +1,53 @@
+#include <IRremote.h>
+
+// Definisci il pin del ricevitore IR
+#define PIN_RICEVITORE_IR 2
+// Definisci il pin di controllo del motore
+#define PIN_MOTORE 3
+// Definisci il pin del semaforo verde
+#define PIN_SEMAFORO_VERDE 4
+// Definisci il pin del sensore di sicurezza
+#define PIN_SENSORE_SICUREZZA 6
+
+// Crea un oggetto IRremote
+IRrecv ricevitoreIR(PIN_RICEVITORE_IR);
+decode_results risultati;
+
+void setup() {
+  // Inizializza la comunicazione seriale
+  Serial.begin(9600);
+  // Inizializza il ricevitore IR
+  ricevitoreIR.enableIRIn();
+  // Inizializza il pin di controllo del motore
+  pinMode(PIN_MOTORE, OUTPUT);
+  // Inizializza il pin del semaforo verde
+  pinMode(PIN_SEMAFORO_VERDE, OUTPUT);
+  // Inizializza il pin del sensore di sicurezza
+  pinMode(PIN_SENSORE_SICUREZZA, INPUT);
+}
+
+void loop() {
+  // Controlla se è stato ricevuto un segnale IR
+  if (ricevitoreIR.decode(&risultati)) {
+    Serial.println(risultati.value, HEX);
+
+    if (risultati.value == 0x12345678) {
+      // Controlla se c'è qualcosa sotto la serranda
+      if (digitalRead(PIN_SENSORE_SICUREZZA) == HIGH) {
+        Serial.println("Attenzione: Oggetto sotto la serranda, impossibile chiudere.");
+      } else {
+        // Chiudi la serranda solo se non c'è alcun ostacolo
+        digitalWrite(PIN_MOTORE, HIGH);
+        delay(2000);
+        digitalWrite(PIN_MOTORE, LOW);
+
+        // Accendi il semaforo verde
+        digitalWrite(PIN_SEMAFORO_VERDE, HIGH);
+        delay(2000);
+        digitalWrite(PIN_SEMAFORO_VERDE, LOW);
+      }
+    }
+
+    ricevitoreIR.resume();
+  }
+}
